@@ -21,12 +21,28 @@ hsv = 108,217,200
 upper_blue = numpy.array([115,255,255])
 lower_blue = numpy.array([107,80,80])
 
+capture_type = "image"
+device_id = 0
+imagePath = "img.png"
+
 MAX_LEN = 32
 points = deque(maxlen=MAX_LEN)
 
-
 # Get user supplied values
-imagePath = sys.argv[1]
+if len(sys.argv) != 3:
+    print("""
+    Usage:
+            python obj-tracking.py -i img.png
+            python obj-tracking.py -d 0
+    """)
+    sys.exit(-1)
+
+if sys.argv[1]=="-i":
+    capture_type = "image"
+    imagePath = sys.argv[2]
+if sys.argv[1]=="-d":
+    capture_type = "camera"
+    device_id = int(sys.argv[2])
 
 def getCircleXY(cnts):
     # http://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html?highlight=moments
@@ -91,7 +107,7 @@ def singleFrame():
 
 def video():
     # 設定 VideoCapture
-    v = cv2.VideoCapture(0)
+    v = cv2.VideoCapture(device_id)
     v.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     v.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
@@ -109,5 +125,7 @@ def video():
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    video()
-    # singleFrame()
+    if capture_type == "camera":
+        video()
+    else:
+        singleFrame()
