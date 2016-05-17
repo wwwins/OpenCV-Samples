@@ -43,9 +43,7 @@ def getCircleXY(cnts):
         cx = cy = 0
     return ((int(x),int(y)), int(radius), (cx,cy))
 
-def frame():
-    # cv2.imwrite(imagePath,frame)
-    frame = cv2.imread(imagePath)
+def processImage(frame):
     # BGR->HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     mask = cv2.inRange(hsv, lower_blue, upper_blue)
@@ -65,11 +63,27 @@ def frame():
         if radius > 10:
            cv2.circle(frame, position, radius,(0, 255, 255), 2)
            cv2.circle(frame, center, 5, (0, 0, 255), -1)
+           points.append(center)
+        else:
+           points.append(None)
+
+    if len(points) > 1:
+        for i in range(len(points)-1,0,-1):
+            if points[i] is None or points[i-1] is None:
+                break
+            #print("i:",i,",points:",points[i-1],points[i])
+            cv2.line(frame, points[i-1], points[i], (200, 100, 30), int(0.4*(1+i)))
 
     cv2.imshow('demo',frame)
     if DEBUG:
         cv2.imshow('mask',mask)
         cv2.imshow('result',result)
+
+def singleFrame():
+    # cv2.imwrite(imagePath,frame)
+    frame = cv2.imread(imagePath)
+    processImage(frame)
+
     # cv2.imshow('cnts',drawImg)
     # 按任何鍵就往下執行
     cv2.waitKey(0)
@@ -85,37 +99,7 @@ def video():
         _, frame = v.read()
         # 左右翻轉
         frame = cv2.flip(frame,1)
-        # BGR->HSV
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, lower_blue, upper_blue)
-        # 去除雜點
-        mask = cv2.erode(mask, None, iterations=2)
-        mask = cv2.dilate(mask, None, iterations=2)
-        if DEBUG:
-            result = cv2.bitwise_and(frame,frame,mask=mask)
-
-        _, cnts, _ = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        center = None
-        if cnts:
-            (position,radius,center) = getCircleXY(cnts)
-            if radius > 10:
-               cv2.circle(frame, position, radius,(0, 255, 255), 2)
-               cv2.circle(frame, center, 5, (0, 0, 255), -1)
-               points.append(center)
-            else:
-               points.append(None)
-
-        if len(points) > 1:
-            for i in range(len(points)-1,0,-1):
-                if points[i] is None or points[i-1] is None:
-                    break
-                #print("i:",i,",points:",points[i-1],points[i])
-                cv2.line(frame, points[i-1], points[i], (200, 100, 30), int(0.4*(1+i)))
-
-        cv2.imshow('demo',frame)
-        if DEBUG:
-            cv2.imshow('mask',mask)
-            cv2.imshow('result',result)
+        processImage(frame)
 
         # 按下 q 跳離
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -126,4 +110,4 @@ def video():
 
 if __name__ == '__main__':
     video()
-    #frame()
+    # singleFrame()
