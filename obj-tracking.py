@@ -140,6 +140,10 @@ def video():
 
     drawingBoard = createBlankImage(FRAME_WIDTH, FRAME_HEIGHT)
 
+    # Moves window to the specified position
+    cv2.namedWindow("demo")
+    cv2.moveWindow("demo", 1500, 200)
+
     while True:
         _, frame = v.read()
         # 左右翻轉
