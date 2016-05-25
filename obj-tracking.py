@@ -9,6 +9,9 @@ DEBUG = False
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 
+# 是否開啟繪圖模式
+DRAW = True
+
 '''
 opencv hsv 定義如下，與一般網頁的 hsv 不同
 h:0-179
@@ -31,6 +34,10 @@ imagePath = "img.png"
 MAX_LEN = 32
 points = deque(maxlen=MAX_LEN)
 
+# drawing
+sp = (-1, -1)
+drawingBoard = None
+
 # Get user supplied values
 if len(sys.argv) != 3:
     print("""
@@ -47,7 +54,12 @@ if sys.argv[1]=="-d":
     capture_type = "camera"
     device_id = int(sys.argv[2])
 
-def createBlankImage(width, height, color=[255,255,255]):
+def drawing(img, p):
+    global sp
+    cv2.line(img,sp, p,(20, 100, 30), 10)
+    sp = p
+
+def createBlankImage(width, height, color=(255,255,255)):
     img = numpy.zeros((height, width, 3), numpy.uint8)
     img[:] = color
     return img
@@ -85,19 +97,24 @@ def processImage(frame):
     if cnts:
         (position,radius,center) = getCircleXY(cnts)
         if radius > 10:
-           cv2.circle(frame, position, radius,(0, 255, 255), 2)
-           cv2.circle(frame, center, 5, (0, 0, 255), -1)
-           points.append(center)
+            if DRAW:
+                drawing(drawingBoard, center)
+            cv2.circle(frame, position, radius,(0, 255, 255), 2)
+            cv2.circle(frame, center, 5, (0, 0, 255), -1)
+            points.append(center)
         else:
-           points.append(None)
+            points.append(None)
 
     if len(points) > 1:
         for i in range(len(points)-1,0,-1):
             if points[i] is None or points[i-1] is None:
                 break
-            #print("i:",i,",points:",points[i-1],points[i])
+            # print("i:",i,",points:",points[i-1],points[i])
             cv2.line(frame, points[i-1], points[i], (200, 100, 30), int(0.4*(1+i)))
-            #cv2.line(frame, points[i-1], points[i], tuple(numpy.random.randint(0,255,3).tolist()), int(0.4*(1+i)))
+            # cv2.line(frame, points[i-1], points[i], tuple(numpy.random.randint(0,255,3).tolist()), int(0.4*(1+i)))
+
+    if DRAW:
+        frame = cv2.addWeighted(frame,0.7,drawingBoard,0.3,0)
 
     cv2.imshow('demo',frame)
     if DEBUG:
@@ -114,16 +131,22 @@ def singleFrame():
     cv2.destroyAllWindows()
 
 def video():
+    global drawingBoard
+
     # 設定 VideoCapture
     v = cv2.VideoCapture(device_id)
     v.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
     v.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
+
+    drawingBoard = createBlankImage(FRAME_WIDTH, FRAME_HEIGHT)
 
     while True:
         _, frame = v.read()
         # 左右翻轉
         frame = cv2.flip(frame,1)
         processImage(frame)
+        if DEBUG:
+            cv2.imshow("drawingBoard", drawingBoard)
 
         # 按下 q 跳離
         if cv2.waitKey(1) & 0xFF == ord('q'):
