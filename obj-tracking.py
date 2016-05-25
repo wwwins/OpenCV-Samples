@@ -6,6 +6,9 @@ from collections import deque
 
 DEBUG = False
 
+FRAME_WIDTH = 640
+FRAME_HEIGHT = 480
+
 '''
 opencv hsv 定義如下，與一般網頁的 hsv 不同
 h:0-179
@@ -43,6 +46,11 @@ if sys.argv[1]=="-i":
 if sys.argv[1]=="-d":
     capture_type = "camera"
     device_id = int(sys.argv[2])
+
+def createBlankImage(width, height, color=[255,255,255]):
+    img = numpy.zeros((height, width, 3), numpy.uint8)
+    img[:] = color
+    return img
 
 def getCircleXY(cnts):
     # http://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_contours/py_contour_features/py_contour_features.html?highlight=moments
@@ -89,6 +97,7 @@ def processImage(frame):
                 break
             #print("i:",i,",points:",points[i-1],points[i])
             cv2.line(frame, points[i-1], points[i], (200, 100, 30), int(0.4*(1+i)))
+            #cv2.line(frame, points[i-1], points[i], tuple(numpy.random.randint(0,255,3).tolist()), int(0.4*(1+i)))
 
     cv2.imshow('demo',frame)
     if DEBUG:
@@ -99,7 +108,6 @@ def singleFrame():
     # cv2.imwrite(imagePath,frame)
     frame = cv2.imread(imagePath)
     processImage(frame)
-
     # cv2.imshow('cnts',drawImg)
     # 按任何鍵就往下執行
     cv2.waitKey(0)
@@ -108,8 +116,8 @@ def singleFrame():
 def video():
     # 設定 VideoCapture
     v = cv2.VideoCapture(device_id)
-    v.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    v.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    v.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
+    v.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
 
     while True:
         _, frame = v.read()
