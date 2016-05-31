@@ -22,7 +22,7 @@ rgb = 0,19,110
 hsv = 115,255,110
 
 rgb = 30,106,198
-hsv = 108,217,200
+hsv = 106,216,198
 '''
 upper_blue = numpy.array([115,255,255])
 lower_blue = numpy.array([107,80,80])
@@ -43,12 +43,16 @@ if len(sys.argv) != 3:
     print("""
     Usage:
             python obj-tracking.py -i img.png
+            python obj-tracking.py -s save.png
             python obj-tracking.py -d 0
     """)
     sys.exit(-1)
 
 if sys.argv[1]=="-i":
     capture_type = "image"
+    imagePath = sys.argv[2]
+if sys.argv[1]=="-s":
+    capture_type = "save"
     imagePath = sys.argv[2]
 if sys.argv[1]=="-d":
     capture_type = "camera"
@@ -113,16 +117,26 @@ def processImage(frame):
             cv2.line(frame, points[i-1], points[i], (200, 100, 30), int(0.4*(1+i)))
             # cv2.line(frame, points[i-1], points[i], tuple(numpy.random.randint(0,255,3).tolist()), int(0.4*(1+i)))
 
-    if DRAW:
+    if DRAW and capture_type=="camera":
         frame = cv2.addWeighted(frame,0.7,drawingBoard,0.3,0)
 
+    # frame = cv2.stylization(frame, sigma_s=60, sigma_r=0.07)
+    # dst_gray, dst_color = cv2.pencilSketch(frame, sigma_s=60, sigma_r=0.07, shade_factor=0.05)
+
     cv2.imshow('demo',frame)
+
     if DEBUG:
         cv2.imshow('mask',mask)
         cv2.imshow('result',result)
 
+def saveFrame():
+    v = cv2.VideoCapture(device_id)
+    v.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
+    v.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
+    _, frame = v.read()
+    cv2.imwrite(imagePath,frame)
+
 def singleFrame():
-    # cv2.imwrite(imagePath,frame)
     frame = cv2.imread(imagePath)
     processImage(frame)
     # cv2.imshow('cnts',drawImg)
@@ -140,10 +154,6 @@ def video():
 
     drawingBoard = createBlankImage(FRAME_WIDTH, FRAME_HEIGHT)
 
-    # Moves window to the specified position
-    cv2.namedWindow("demo")
-    cv2.moveWindow("demo", 1500, 200)
-
     while True:
         _, frame = v.read()
         # 左右翻轉
@@ -160,7 +170,13 @@ def video():
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
+    # Moves window to the specified position
+    cv2.namedWindow("demo")
+    cv2.moveWindow("demo", 1500, 200)
+
     if capture_type == "camera":
         video()
+    elif capture_type == "save":
+        saveFrame()
     else:
         singleFrame()
