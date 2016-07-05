@@ -20,7 +20,7 @@ faces = faceCascade.detectMultiScale(
     scaleFactor=1.1,
     minNeighbors=5,
     minSize=(80, 80),
-    flags = cv2.CASCADE_SCALE_IMAGE 
+    flags = cv2.CASCADE_SCALE_IMAGE
 )
 
 print ("Found {0} faces!".format(len(faces)))

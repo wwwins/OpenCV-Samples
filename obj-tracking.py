@@ -10,7 +10,7 @@ FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 
 # 是否開啟繪圖模式
-DRAW = True
+DRAW = False
 
 '''
 opencv hsv 定義如下，與一般網頁的 hsv 不同
@@ -75,13 +75,14 @@ def getCircleXY(cnts):
     # 取得最小可包圍輪廓的圓形
     ((x, y), radius) = cv2.minEnclosingCircle(c)
     # 取得此面積的重心
-    M = cv2.moments(c)
-    if M["m00"] > 0:
-        cx = int(M['m10']/M['m00'])
-        cy = int(M['m01']/M['m00'])
-    else:
-        cx = cy = 0
-    return ((int(x),int(y)), int(radius), (cx,cy))
+    # M = cv2.moments(c)
+    # if M["m00"] > 0:
+    #     cx = int(M['m10']/M['m00'])
+    #     cy = int(M['m01']/M['m00'])
+    # else:
+    #     cx = cy = 0
+    # return ((int(x),int(y)), int(radius), (cx,cy))
+    return ((int(x),int(y)), int(radius), (int(x),int(y)))
 
 def processImage(frame):
     # BGR->HSV
