@@ -10,7 +10,7 @@ webcam-face-detect.py
 ```python
 python webcam-face-detect.py data/haarcascade_frontalface_alt2.xml
 ```
-[img-face-detect.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/obj-tracking.png)
+![img-face-detect.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/img-face-detect.png)
 
 ## 物體追蹤
 obj-tracking.py
@@ -20,7 +20,7 @@ python obj-tracking.py -i img.png
 // for webcam
 python obj-tracking.py -i 0
 ```
-[obj-tracking.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/obj-tracking.png)
+![obj-tracking.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/obj-tracking.png)
 
 ## 特偵點應用
 feature_detection.py
@@ -30,6 +30,6 @@ python feature_detection -i img.png -d [SIFT/SURF/ORB]
 python feature_detection -m logo.png img.png
 python feature_detection -s left.png right.png
 ```
-[feature-surf.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/feature-surf.png)
+![feature-surf.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/feature-surf.png)
 
-[feature-pi-2.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/feature-pi-2.png)
+![feature-pi-2.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/feature-pi-2.png)
