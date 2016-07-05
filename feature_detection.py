@@ -21,11 +21,12 @@ MIN_MATCH_COUNT = 10
 
 queryImagePath = None
 imagePath = "img.png"
+algorithm = "SIFT"
 
 if len(sys.argv) < 3:
     print("""
     Usage:
-            python feature_detection -i img.png
+            python feature_detection -i img.png -d [SIFT/SURF/ORB]
             python feature_detection -m logo.png img.png
             python feature_detection -s left.png right.png
     """)
@@ -34,6 +35,8 @@ if len(sys.argv) < 3:
 if sys.argv[1]=="-i":
     type = "features"
     imagePath = sys.argv[2]
+    if len(sys.argv) > 4:
+        algorithm = sys.argv[4].upper()
 if sys.argv[1]=="-m":
     type = "matches"
     queryImagePath = sys.argv[2]
@@ -60,7 +63,7 @@ def video(queryFrame):
     cv2.destroyAllWindows()
 
 def stitch(imageLeft, imageRight):
-    detector = cv2.xfeatures2d.SURF_create(300)
+    detector = cv2.xfeatures2d.SURF_create(500)
     kpLeft, descLeft = detector.detectAndCompute(imageLeft, None)
     kpRight, descRight = detector.detectAndCompute(imageRight, None)
     bfmatcher = cv2.BFMatcher()
@@ -87,29 +90,39 @@ def stitch(imageLeft, imageRight):
 def processImage(frame):
     # 先將圖形轉成灰階
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    """
-    SURF Hessian Threshold: 800
-    """
-    # detector = cv2.xfeatures2d.SURF_create(800)
-    # 特徵點不考慮方向性
-    # detector.setUpright(True)
-    """
-    SIFT
-    """
-    # detector = cv2.xfeatures2d.SIFT_create()
-    """
-    ORB
-    fixed: disable OpenCL https://github.com/Itseez/opencv/issues/6081
-    """
-    cv2.ocl.setUseOpenCL(False)
-    detector = cv2.ORB_create(500)
-    kp, desc = detector.detectAndCompute(frame, None)
-    """
-    FAST
-    detector = cv2.FastFeatureDetector_create()
-    kp = detector.detect(frame)
-    """
+    if algorithm == "SURF":
+        """
+        SURF Hessian Threshold: 800
+        """
+        detector = cv2.xfeatures2d.SURF_create(800)
+        # 特徵點不考慮方向性
+        # detector.setUpright(True)
+        kp, desc = detector.detectAndCompute(frame, None)
+    elif algorithm == "SIFT":
+        """
+        SIFT
+        """
+        detector = cv2.xfeatures2d.SIFT_create()
+        kp, desc = detector.detectAndCompute(frame, None)
+    elif algorithm == "ORB":
+        """
+        ORB
+        fixed: disable OpenCL https://github.com/Itseez/opencv/issues/6081
+        """
+        cv2.ocl.setUseOpenCL(False)
+        detector = cv2.ORB_create(500)
+        kp, desc = detector.detectAndCompute(frame, None)
+    elif algorithm == "FAST":
+        """
+        FAST
+        """
+        detector = cv2.FastFeatureDetector_create()
+        kp = detector.detect(frame)
+
     print("Keypoints:",len(kp))
+    for p in kp:
+        print("p:",p.pt)
+
     img = cv2.drawKeypoints(frame, kp, None, flags=cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
     cv2.imshow('demo',img)
 
@@ -197,7 +210,6 @@ def processImagesknnMatch(frame1,frame2):
     img = cv2.drawMatchesKnn(frame1,kp1,frame2,kp2,good,None,flags=cv2.DRAW_MATCHES_FLAGS_NOT_DRAW_SINGLE_POINTS)
     cv2.imshow('demo',img)
 
-
 """
     文件上說效能好不少，但目前版本的 OpenCV 3.1.0 有 bug。
     Bug: https://github.com/Itseez/opencv/issues/5667
@@ -241,12 +253,13 @@ def main():
         queryFrame = cv2.imread(queryImagePath)
         # processImagesMatch(queryFrame, frame)
         # processImagesknnMatch(imutils.resize(queryFrame,width=400), imutils.resize(frame,width=400))
-        processImagesknnMatch(queryFrame, frame)
+        processImagesknnMatch(queryFrame, imutils.resize(frame,width=800))
+        # processImagesknnMatch(queryFrame, frame)
         # processImagesFlannBasedMatcher(queryFrame, frame)
         # video(queryFrame)
     elif type == "stitch":
         queryFrame = cv2.imread(queryImagePath)
-        stitch(queryFrame, frame)
+        stitch(imutils.resize(queryFrame,width=1000), imutils.resize(frame,width=1000))
 
     # cv2.imshow('cnts',drawImg)
     # 按任何鍵就往下執行
