@@ -191,17 +191,22 @@ if __name__ == '__main__':
 
     rect = (0, 0, w, h);
     dt = calculateDelaunayTriangles(rect, np.array(points2));
+
     cnt = 0
     if steps:
-        for a in xrange(0,11):
-            imgMorph = morph(points1,points2,a*0.1)
+        for a in xrange(0,21):
+            imgMorph = morph(points1,points2,a*0.05)
             if saveFiles:
                 fn = "img{}.png".format(cnt)
                 print ("processing:"+fn)
                 cv2.imwrite("images/"+fn,imgMorph)
             if animate:
                 cv2.imshow("Morphed Face", np.uint8(imgMorph))
-                cv2.waitKey(100)
+                if cnt<1:
+                    print("press any key to continue...")
+                    cv2.waitKey(0)
+                else:
+                    cv2.waitKey(50)
             cnt = cnt + 1
 
     # Display Result
