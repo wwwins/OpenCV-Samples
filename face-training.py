@@ -12,6 +12,8 @@ from glob import glob
 
 IGNORE_FILE_NAME = ['resize']
 
+# SCALE_FACTOR = 1.05
+
 if len(sys.argv) < 4:
     print("""
     Usage:
@@ -30,7 +32,8 @@ recognizer = cv2.face.createLBPHFaceRecognizer()
 
 def faceDetect(gray, fn):
     faces = faceCascade.detectMultiScale(
-        gray
+        gray,
+        # scaleFactor=SCALE_FACTOR
     )
     if len(faces)>0:
         print ("{0} found {1} faces!".format(fn, len(faces)))
@@ -41,19 +44,25 @@ def faceDetect(gray, fn):
 def getImagesAndLabels():
     arr_images = []
     arr_labels = []
+    arr_labels_info = []
     for f in glob('{0}/*_[0-9].png'.format(image_path)):
         frame = cv2.imread(f, 0)
         fn = f.split('/')[1]
         label = int(fn.split('_')[0])
+        label_info = fn.split('_')[2]
         faces = faceDetect(frame, fn)
         for (x, y, w, h) in faces:
+            if label not in arr_labels:
+                arr_labels_info.append([label,label_info])
             arr_images.append(frame[y:y+h,x:x+w])
             arr_labels.append(label)
-    return arr_images, arr_labels
+    return arr_images, arr_labels, arr_labels_info
 
 if __name__ == '__main__':
-    images,labels = getImagesAndLabels()
+    images,labels,arr_info = getImagesAndLabels()
     # Train the model using the face images and labels
     recognizer.train(images, np.array(labels))
-    recognizer.setLabelInfo(labels[0],'isobar-jacky')
+    for info in arr_info:
+        print(info)
+        recognizer.setLabelInfo(info[0],info[1])
     recognizer.save(training_file)
