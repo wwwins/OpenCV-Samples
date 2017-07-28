@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
-# create-face-dataset.py.py
+# create-face-dataset.py
 #
 import cv2
 import sys
