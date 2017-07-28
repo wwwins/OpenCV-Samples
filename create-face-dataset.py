@@ -14,7 +14,7 @@ from glob import glob
 # lbpcascade_frontalface: 1.1
 # haarcascade_frontalface_default: 1.3
 # haarcascade_frontalface_alt2: 1.3
-SCALE_FACTOR = 1.3
+SCALE_FACTOR = 1.1
 MIN_NEIGHBORS = 5
 #MIN_SIZE = 30
 MIN_SIZE = 80
