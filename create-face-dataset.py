@@ -53,7 +53,7 @@ def faceDetect(gray, fn):
 def createDatasets():
     sno = 0
     buf = ''
-    for f in glob('{0}/*_[0-9].png'.format(image_path)):
+    for f in glob('{0}/*_[0-9]*.png'.format(image_path)):
         frame = cv2.imread(f, 0)
         fn = f.split('/')[1]
         if buf != fn.split(' ')[0]:
