@@ -45,7 +45,7 @@ def getImagesAndLabels():
     arr_images = []
     arr_labels = []
     arr_labels_info = []
-    for f in glob('{0}/*_[0-9].png'.format(image_path)):
+    for f in glob('{0}/*_[0-9]*.png'.format(image_path)):
         frame = cv2.imread(f, 0)
         fn = f.split('/')[1]
         label = int(fn.split('_')[0])
