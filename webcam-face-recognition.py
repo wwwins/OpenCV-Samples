@@ -13,6 +13,7 @@ ENABLE_VIDEO_STREAM = False
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 360
 
+# hunting sight
 SIGHT_W = 3
 SIGHT_H = 15
 SIGHT_COLOR = (66,66,244)
@@ -93,8 +94,6 @@ def faceDetect(gray):
 
     # Draw a rectangle around the faces
     for (x, y, w, h) in faces:
-        # cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0), 1)
-        draw_hunting_sight(frame, (x,y), (x+w,y+h))
         # get a simple prediction
         # prediction_label = recognizer.predict(gray[y:y+h,x:x+w])
         recognizer.predict(gray[y:y+h,x:x+w],collector)
@@ -104,17 +103,20 @@ def faceDetect(gray):
             print("label -> dist: {0} -> {1}".format(prediction_label, prediction_distance))
 
         if (prediction_distance<100.0):
+            draw_hunting_sight(frame, (x,y), (x+w,y+h))
             showText = "Unknown"
             if(id>=0):
                 showText = recognizer.getLabelInfo(prediction_label)
                 cv2.putText(frame, str(showText), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
+        # else:
+        #     cv2.rectangle(frame, (x, y), (x+w, y+h), (244,144,66), 1)
 
     return frame
 
 while True:
     # Capture frame-by-frame
     _,frame = video_capture.read()
-
+    frame = cv2.flip(frame,1)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     resultFrame = faceDetect(gray)
