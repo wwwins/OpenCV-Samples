@@ -3,7 +3,7 @@
 # @Author: wwwins
 # @Date:   2017-08-09 11:15:17
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-09 11:18:32
+# @Last Modified time: 2017-08-09 11:46:27
 
 import cv2
 import sys
@@ -117,11 +117,25 @@ def faceDetect(gray):
                 showText = recognizer.getLabelInfo(prediction_label)
                 # cv2.putText(frame, str(showText), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
                 cv2.putText(frame, str(prediction_label), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
-                show_image_text(str(prediction_label)+':'+showText)
+                prediction_text(prediction_label, showText)
         # else:
         #     cv2.rectangle(frame, (x, y), (x+w, y+h), (244,144,66), 1)
 
     return frame
+
+millis = lambda: int(round(time.time() * 1000))
+started_waiting_at = millis()
+
+def show_image_text(contents):
+    print('show image text:'+contents)
+    frame_title = get_image_text(contents)
+    cv2.imshow("name label",frame_title)
+
+def prediction_text(label, text):
+    global started_waiting_at
+    if (millis() - started_waiting_at) > 1000:
+        show_image_text(str(label)+':'+text)
+        started_waiting_at = millis()
 
 cv2.namedWindow("name label")
 cv2.moveWindow("name label", 46, FRAME_HEIGHT+44)
