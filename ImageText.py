@@ -3,17 +3,13 @@
 # @Author: wwwins
 # @Date:   2017-08-09 11:08:28
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-09 11:19:06
+# @Last Modified time: 2017-08-09 11:46:32
 
 import cv2
 import math
-import time
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-
-millis = lambda: int(round(time.time() * 1000))
-started_waiting_at = millis()
 
 def get_gradient_image(image):
     imgsize = image.size
@@ -48,10 +44,3 @@ def get_image_text(contents):
 
     return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
-def show_image_text(contents):
-    global started_waiting_at
-    if (millis() - started_waiting_at) > 1000:
-        print('show image text:'+contents)
-        frame_title = get_image_text(contents)
-        cv2.imshow("name label",frame_title)
-        started_waiting_at = millis()
