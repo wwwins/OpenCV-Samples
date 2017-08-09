@@ -1,8 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-#
-# create-face-dataset.py
-#
+# @Author: wwwins
+# @Date:   2017-08-08 18:45:16
+# @Last Modified by:   wwwins
+# @Last Modified time: 2017-08-09 11:20:21
+
 import cv2
 import sys
 import os
