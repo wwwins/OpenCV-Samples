@@ -6,7 +6,7 @@ import numpy as np
 from ticket import ticket
 from imutils.video import VideoStream
 
-DEBUG = True
+DEBUG = 0
 ENABLE_FPS = False
 ENABLE_VIDEO_STREAM = False
 
@@ -87,8 +87,9 @@ def faceDetect(gray):
         flags=cv2.CASCADE_SCALE_IMAGE
     )
 
-    if len(faces)>0:
-        print ("Found {0} faces!".format(len(faces)))
+    if DEBUG:
+        if len(faces)>0:
+            print ("Found {0} faces!".format(len(faces)))
 
     collector = cv2.face.MinDistancePredictCollector()
 
