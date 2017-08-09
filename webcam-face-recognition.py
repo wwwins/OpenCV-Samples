@@ -1,10 +1,17 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+# @Author: wwwins
+# @Date:   2017-08-09 11:15:17
+# @Last Modified by:   wwwins
+# @Last Modified time: 2017-08-09 11:18:32
+
 import cv2
 import sys
 import time
 import numpy as np
 from ticket import ticket
 from imutils.video import VideoStream
+from ImageText import *
 
 DEBUG = 0
 ENABLE_FPS = False
@@ -106,13 +113,18 @@ def faceDetect(gray):
         if (prediction_distance<100.0):
             draw_hunting_sight(frame, (x,y), (x+w,y+h))
             showText = "Unknown"
-            if(id>=0):
+            if(prediction_label>=0):
                 showText = recognizer.getLabelInfo(prediction_label)
-                cv2.putText(frame, str(showText), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
+                # cv2.putText(frame, str(showText), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
+                cv2.putText(frame, str(prediction_label), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
+                show_image_text(str(prediction_label)+':'+showText)
         # else:
         #     cv2.rectangle(frame, (x, y), (x+w, y+h), (244,144,66), 1)
 
     return frame
+
+cv2.namedWindow("name label")
+cv2.moveWindow("name label", 46, FRAME_HEIGHT+44)
 
 while True:
     # Capture frame-by-frame
