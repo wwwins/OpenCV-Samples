@@ -3,7 +3,7 @@
 # @Author: wwwins
 # @Date:   2017-08-09 11:15:17
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-09 11:46:27
+# @Last Modified time: 2017-08-09 12:56:21
 
 import cv2
 import sys
@@ -51,7 +51,7 @@ if ENABLE_VIDEO_STREAM:
     video_capture = VideoStream(usePiCamera=False).start()
 
 else:
-    video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture(1)
     video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
     video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
 
