@@ -3,19 +3,17 @@
 # @Author: wwwins
 # @Date:   2017-08-09 11:15:17
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-09 17:47:02
+# @Last Modified time: 2017-08-10 11:33:34
 
 import cv2
 import sys
 import time
 import numpy as np
 from ticket import ticket
-from imutils.video import VideoStream
 from ImageText import *
 
 DEBUG = 0
 ENABLE_FPS = False
-ENABLE_VIDEO_STREAM = False
 
 FRAME_WIDTH = 640
 FRAME_HEIGHT = 360
@@ -47,13 +45,9 @@ model_file = sys.argv[2]
 recognizer = cv2.face.createLBPHFaceRecognizer()
 recognizer.load(model_file)
 
-if ENABLE_VIDEO_STREAM:
-    video_capture = VideoStream(usePiCamera=False).start()
-
-else:
-    video_capture = cv2.VideoCapture(1)
-    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
-    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
+video_capture = cv2.VideoCapture(1)
+video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
+video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
 
 time.sleep(1)
 t = ticket()
@@ -131,7 +125,7 @@ def show_image_text(contents):
 
 def prediction_text(label, text):
     global started_waiting_at
-    if (millis() - started_waiting_at) > 1000:
+    if (millis() - started_waiting_at) > 500:
         show_image_text(str(label)+':'+text)
         started_waiting_at = millis()
 
