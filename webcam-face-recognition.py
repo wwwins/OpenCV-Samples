@@ -3,7 +3,7 @@
 # @Author: wwwins
 # @Date:   2017-08-09 11:15:17
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-10 11:33:34
+# @Last Modified time: 2017-08-10 18:49:14
 
 import cv2
 import sys
@@ -12,7 +12,7 @@ import numpy as np
 from ticket import ticket
 from ImageText import *
 
-DEBUG = 0
+DEBUG = 1
 ENABLE_FPS = False
 
 FRAME_WIDTH = 640
@@ -31,10 +31,13 @@ MIN_NEIGHBORS = 3
 #MIN_SIZE = 30
 MIN_SIZE = 100
 
+# default tolerance value
+TOLERANCE = 0.6
+
 if len(sys.argv) < 3:
     print("""
     Usage:
-            webcam-face-recognition.py data/haarcascade_frontalface_default.xml lbph-training.yml
+            webcam-face-recognition.py data/haarcascade_frontalface_default.xml lbph-training.yml [image.jpg]
     """)
     sys.exit(-1)
 
@@ -45,9 +48,16 @@ model_file = sys.argv[2]
 recognizer = cv2.face.createLBPHFaceRecognizer()
 recognizer.load(model_file)
 
-video_capture = cv2.VideoCapture(1)
-video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
-video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
+millis = lambda: int(round(time.time() * 1000))
+started_waiting_at = millis()
+
+image = None
+if len(sys.argv)>3:
+    image = sys.argv[3]
+else:
+    video_capture = cv2.VideoCapture(1)
+    video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
+    video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
 
 time.sleep(1)
 t = ticket()
@@ -79,7 +89,8 @@ def draw_hunting_sight(img, pos1, pos2):
     w1 = int(SIGHT_W*0.5)
     cv2.rectangle(img, (p1[0]+w1,p1[1]+w1), (p2[0]-w1,p2[1]-w1), SIGHT_COLOR)
 
-def faceDetect(gray):
+def faceDetect(frame):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = faceCascade.detectMultiScale(
         gray,
         scaleFactor=SCALE_FACTOR,
@@ -99,11 +110,11 @@ def faceDetect(gray):
         # prediction_label = recognizer.predict(gray[y:y+h,x:x+w])
         recognizer.predict(gray[y:y+h,x:x+w],collector)
         prediction_label = collector.getLabel()
-        prediction_distance = collector.getDist()
+        prediction_distance = collector.getDist()/100
         if (DEBUG):
             print("label -> dist: {0} -> {1}".format(prediction_label, prediction_distance))
 
-        if (prediction_distance<100.0):
+        if (prediction_distance < TOLERANCE):
             draw_hunting_sight(frame, (x,y), (x+w,y+h))
             showText = "Unknown"
             if(prediction_label>=0):
@@ -114,9 +125,6 @@ def faceDetect(gray):
         else:
             prediction_text(999999,"Unknown")
     return frame
-
-millis = lambda: int(round(time.time() * 1000))
-started_waiting_at = millis()
 
 def show_image_text(contents):
     print('show image text:'+contents)
@@ -129,27 +137,36 @@ def prediction_text(label, text):
         show_image_text(str(label)+':'+text)
         started_waiting_at = millis()
 
-cv2.namedWindow('Video')
-cv2.moveWindow("Video", 690+640, 750+150)
-cv2.namedWindow("Label name")
-cv2.moveWindow("Label name", 690+640, 750+150+FRAME_HEIGHT+24)
+def main():
+    cv2.namedWindow('Video')
+    cv2.moveWindow("Video", 690+640, 750+150)
+    cv2.namedWindow("Label name")
+    cv2.moveWindow("Label name", 690+640, 750+150+FRAME_HEIGHT+24)
 
-while True:
-    # Capture frame-by-frame
-    _,frame = video_capture.read()
-    frame = cv2.flip(frame,1)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    if image:
+        frame = cv2.imread(image)
+        resultFrame = faceDetect(frame)
+        cv2.imshow('Video', resultFrame)
+        cv2.waitKey(0)
+        return
 
-    resultFrame = faceDetect(gray)
-    # Display the resulting frame
-    cv2.imshow('Video', resultFrame)
+    while True:
+        # Capture frame-by-frame
+        _,frame = video_capture.read()
+        frame = cv2.flip(frame,1)
 
-    if ENABLE_FPS:
-        print("fps:",t.fps())
+        resultFrame = faceDetect(frame)
+        # Display the resulting frame
+        cv2.imshow('Video', resultFrame)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        if ENABLE_FPS:
+            print("fps:",t.fps())
 
-# When everything is done, release the capture
-video_capture.release()
-cv2.destroyAllWindows()
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    video_capture.release()
+
+if __name__ == '__main__':
+    main()
+    # When everything is done, release the capture
+    cv2.destroyAllWindows()
