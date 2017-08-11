@@ -3,12 +3,13 @@
 # @Author: wwwins
 # @Date:   2017-08-08 18:45:16
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-09 16:52:38
+# @Last Modified time: 2017-08-11 12:43:11
 
 import cv2
 import sys
 import os
 import time
+import argparse
 import numpy as np
 from glob import glob
 
@@ -24,20 +25,15 @@ MIN_SIZE = 80
 FIX_SIZE = False
 FACE_SIZE = 250
 
-if len(sys.argv) < 4:
-    print("""
-    Usage:
-            create-face-dataset.py data/haarcascade_frontalface_default.xml output datasets
-    """)
-    sys.exit(-1)
-
-cascPath = sys.argv[1]
+parser = argparse.ArgumentParser()
+parser.add_argument('src_images', default='output', help='source images folder')
+parser.add_argument('datasets', default='datasets', help='datasets folder')
+parser.add_argument('-f','--face_casc_file', nargs='?', const='data/haarcascade_frontalface_default.xml', default='data/haarcascade_frontalface_default.xml', help='face cascade file')
+args = parser.parse_args()
+cascPath = args.face_casc_file
 faceCascade = cv2.CascadeClassifier(cascPath)
-
-image_path = sys.argv[2]
-
-# model_path = dataset
-model_path = sys.argv[3]
+image_path = args.src_images
+model_path = args.datasets
 
 def faceDetect(gray, fn):
     faces = faceCascade.detectMultiScale(
