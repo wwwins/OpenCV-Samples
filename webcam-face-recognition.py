@@ -3,7 +3,7 @@
 # @Author: wwwins
 # @Date:   2017-08-09 11:15:17
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-10 18:49:14
+# @Last Modified time: 2017-08-14 16:44:18
 
 import cv2
 import sys
@@ -11,6 +11,7 @@ import time
 import numpy as np
 from ticket import ticket
 from ImageText import *
+from crop_face import *
 
 DEBUG = 1
 ENABLE_FPS = False
@@ -29,7 +30,9 @@ SIGHT_COLOR = (66,66,244)
 SCALE_FACTOR = 1.1
 MIN_NEIGHBORS = 3
 #MIN_SIZE = 30
-MIN_SIZE = 100
+MIN_SIZE = 80
+
+FACE_SIZE = 200
 
 # default tolerance value
 TOLERANCE = 0.6
@@ -43,9 +46,13 @@ if len(sys.argv) < 3:
 
 cascPath = sys.argv[1]
 faceCascade = cv2.CascadeClassifier(cascPath)
+eyeCascPath = "data/haarcascade_eye_tree_eyeglasses.xml"
+eyeCascade = cv2.CascadeClassifier(eyeCascPath)
 
 model_file = sys.argv[2]
 recognizer = cv2.face.createLBPHFaceRecognizer()
+# recognizer = cv2.face.createFisherFaceRecognizer()
+# recognizer = cv2.face.createEigenFaceRecognizer()
 recognizer.load(model_file)
 
 millis = lambda: int(round(time.time() * 1000))
@@ -90,41 +97,62 @@ def draw_hunting_sight(img, pos1, pos2):
     cv2.rectangle(img, (p1[0]+w1,p1[1]+w1), (p2[0]-w1,p2[1]-w1), SIGHT_COLOR)
 
 def faceDetect(frame):
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = faceCascade.detectMultiScale(
-        gray,
+        frame,
         scaleFactor=SCALE_FACTOR,
         minNeighbors=MIN_NEIGHBORS,
         minSize=(MIN_SIZE, MIN_SIZE),
         flags=cv2.CASCADE_SCALE_IMAGE
     )
+    eyes = None
+    roi_frame = np.array([])
+    if len(faces)>0:
+        x, y, w, h = faces[0]
+        roi_frame = frame[y:y+h,x:x+w]
+        eyes = eyeCascade.detectMultiScale(roi_frame)
+    return faces, eyes, roi_frame
 
-    if len(faces)<1:
-        prediction_text(999999,"Unknown")
-
+def facePrediction(faces, eyes, roi_gray):
+    gray_resize = np.array([])
     collector = cv2.face.MinDistancePredictCollector()
-
-    # Draw a rectangle around the faces
-    for (x, y, w, h) in faces:
+    x, y, w, h = faces[0]
+    if (len(eyes)==2):
+        pos = []
+        for ex,ey,ew,eh in eyes:
+            center_pos = (ex+int(ew*0.5), ey+int(eh*0.5))
+            pos.append(center_pos)
+        if pos[0][0]<pos[1][0]:
+            eye_left = pos[0]
+            eye_right = pos[1]
+        else:
+            eye_left = pos[1]
+            eye_right = pos[0]
+        cv2_im = cv2.cvtColor(roi_gray,cv2.COLOR_BGR2RGB)
+        cropframe = CropFace(Image.fromarray(cv2_im), eye_left=eye_left, eye_right=eye_right, offset_pct=(0.2,0.2), dest_sz=(FACE_SIZE,FACE_SIZE))
+        gray_resize = cv2.cvtColor(np.array(cropframe), cv2.COLOR_RGB2GRAY)
+        gray_resize = cv2.equalizeHist(gray_resize)
+        # cv2.rectangle(frame, (x,y),(x+w,y+h),(0,0,255),1)
         # get a simple prediction
         # prediction_label = recognizer.predict(gray[y:y+h,x:x+w])
-        recognizer.predict(gray[y:y+h,x:x+w],collector)
+        # recognizer.predict(gray[y:y+h,x:x+w],collector)
+        prediction_label = recognizer.predict(gray_resize)
+        recognizer.predict(gray_resize,collector)
         prediction_label = collector.getLabel()
         prediction_distance = collector.getDist()/100
         if (DEBUG):
-            print("label -> dist: {0} -> {1}".format(prediction_label, prediction_distance))
+            print("label->dist: {0}->{1}".format(prediction_label, prediction_distance))
 
         if (prediction_distance < TOLERANCE):
-            draw_hunting_sight(frame, (x,y), (x+w,y+h))
+            # draw_hunting_sight(frame, (x,y), (x+w,y+h))
             showText = "Unknown"
             if(prediction_label>=0):
                 showText = recognizer.getLabelInfo(prediction_label)
                 # cv2.putText(frame, str(showText), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
-                cv2.putText(frame, str(prediction_label), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
+                # cv2.putText(frame, str(prediction_label), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
                 prediction_text(prediction_label, showText)
         else:
             prediction_text(999999,"Unknown")
-    return frame
+    return gray_resize
 
 def show_image_text(contents):
     print('show image text:'+contents)
@@ -145,8 +173,15 @@ def main():
 
     if image:
         frame = cv2.imread(image)
-        resultFrame = faceDetect(frame)
-        cv2.imshow('Video', resultFrame)
+        faces, eyes, roi_gray = faceDetect(frame)
+        if len(faces)<1:
+            if DEBUG:
+                print ("*** not found faces ***")
+            prediction_text(999999,"Unknown")
+        result = facePrediction(faces, eyes, roi_gray);
+        cv2.imshow('Video', frame)
+        if(len(result)>0):
+            cv2.imshow('Result', result)
         cv2.waitKey(0)
         return
 
@@ -154,16 +189,22 @@ def main():
         # Capture frame-by-frame
         _,frame = video_capture.read()
         frame = cv2.flip(frame,1)
+        cv2.imshow('Video', frame)
 
-        resultFrame = faceDetect(frame)
+        faces, eyes, roi_gray = faceDetect(frame)
+        if len(faces)<1:
+            prediction_text(999999,"Unknown")
+            continue
+        result = facePrediction(faces, eyes, roi_gray);
         # Display the resulting frame
-        cv2.imshow('Video', resultFrame)
-
+        if DEBUG:
+            if(len(result)>0):
+                cv2.imshow('Result', result)
         if ENABLE_FPS:
             print("fps:",t.fps())
-
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
     video_capture.release()
 
 if __name__ == '__main__':
