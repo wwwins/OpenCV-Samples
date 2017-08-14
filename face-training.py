@@ -3,7 +3,7 @@
 # @Author: wwwins
 # @Date:   2017-08-08 18:37:00
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-09 11:20:06
+# @Last Modified time: 2017-08-14 16:40:31
 
 import cv2
 import sys
@@ -31,6 +31,8 @@ training_file = sys.argv[3]
 
 faceCascade = cv2.CascadeClassifier(cascPath)
 recognizer = cv2.face.createLBPHFaceRecognizer()
+# recognizer = cv2.face.createFisherFaceRecognizer()
+# recognizer = cv2.face.createEigenFaceRecognizer()
 
 def faceDetect(gray, fn):
     faces = faceCascade.detectMultiScale(
@@ -49,15 +51,21 @@ def getImagesAndLabels():
     arr_labels_info = []
     for f in glob('{0}/*_[0-9]*.png'.format(image_path)):
         frame = cv2.imread(f, 0)
+        frame = cv2.equalizeHist(frame)
         fn = f.split('/')[1]
         label = int(fn.split('_')[0])
         label_info = fn.split('_')[2]
-        faces = faceDetect(frame, fn)
-        for (x, y, w, h) in faces:
-            if label not in arr_labels:
-                arr_labels_info.append([label,label_info])
-            arr_images.append(frame[y:y+h,x:x+w])
-            arr_labels.append(label)
+        # faces = faceDetect(frame, fn)
+        # for (x, y, w, h) in faces:
+        #     if label not in arr_labels:
+        #         arr_labels_info.append([label,label_info])
+        #     arr_images.append(frame[y:y+h,x:x+w])
+        #     arr_labels.append(label)
+        # reading all datasets
+        if label not in arr_labels:
+            arr_labels_info.append([label,label_info])
+        arr_images.append(frame)
+        arr_labels.append(label)
     return arr_images, arr_labels, arr_labels_info
 
 if __name__ == '__main__':
