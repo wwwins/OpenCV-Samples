@@ -3,7 +3,7 @@
 # @Author: wwwins
 # @Date:   2017-08-09 11:15:17
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-16 17:49:54
+# @Last Modified time: 2017-08-16 18:37:45
 
 import cv2
 import sys
@@ -16,9 +16,10 @@ from crop_face import *
 
 DEBUG = 0
 ENABLE_FPS = False
+ENABLE_SHOW_CROP = False
 
-FRAME_WIDTH = 1920*0.5
-FRAME_HEIGHT = 1080*0.5
+FRAME_WIDTH = int(1920*0.5)
+FRAME_HEIGHT = int(1080*0.5)
 
 # hunting sight
 SIGHT_W = 3
@@ -40,7 +41,10 @@ TOLERANCE = 0.6
 
 parser = argparse.ArgumentParser()
 parser.add_argument('file', default='lbph-training.yml', help='model file')
+parser.add_argument('-i','--image_file', help='image file')
 parser.add_argument('-f','--face_casc_file', nargs='?', const='data/haarcascade_frontalface_alt.xml', default='data/haarcascade_frontalface_alt.xml', help='face cascade file')
+parser.add_argument('-x', nargs='?', const='100', default='100', type=int, help='x position')
+parser.add_argument('-y', nargs='?', const='100', default='100', type=int, help='y position')
 args = parser.parse_args()
 
 cascPath = args.face_casc_file
@@ -52,6 +56,8 @@ recognizer = cv2.face.createLBPHFaceRecognizer()
 # recognizer = cv2.face.createEigenFaceRecognizer()
 recognizer.load(model_file)
 
+pos = (args.x, args.y)
+
 arr_images = []
 arr_labels = []
 label_id = 3
@@ -61,10 +67,8 @@ started_waiting_at = millis()
 cnt_error = 0
 error_max = 30
 
-image = None
-if len(sys.argv)>3:
-    image = sys.argv[3]
-else:
+image = args.image_file
+if image is None:
     video_capture = cv2.VideoCapture(1)
     video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
     video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
@@ -216,13 +220,14 @@ def prediction_text(label, text):
 
 def main():
     cv2.namedWindow('Video')
-    # cv2.moveWindow("Video", 690+640, 750+150)
+    cv2.moveWindow("Video", pos[0], pos[1])
     cv2.namedWindow("Label name")
-    # cv2.moveWindow("Label name", 690+640, 750+150+FRAME_HEIGHT+24)
+    cv2.moveWindow("Label name", pos[0], pos[1])
     cv2.namedWindow('FaceId')
-    cv2.moveWindow("FaceId", 100, 800)
-    cv2.namedWindow('Crop')
-    cv2.moveWindow("Crop", 400, 800)
+    cv2.moveWindow("FaceId", pos[0]+640, pos[1])
+    if ENABLE_SHOW_CROP:
+        cv2.namedWindow('Crop')
+        cv2.moveWindow("Crop", pos[0]+int(FRAME_WIDTH*0.5), pos[1]+FRAME_HEIGHT)
 
     if image:
         frame = cv2.imread(image)
@@ -246,7 +251,8 @@ def main():
         cv2.imshow('Video', frame)
         if len(faces)>0:
             x,y,w,h = faces[0]
-            cv2.imshow('Crop', frame[y+1:y+h, x+1:x+w])
+            if ENABLE_SHOW_CROP:
+                cv2.imshow('Crop', frame[y+1:y+h, x+1:x+w])
             faceTrain(frame[y:y+h, x:x+w])
             label_id = facePrediction(frame[y:y+h, x:x+w])
             if label_id>0:
