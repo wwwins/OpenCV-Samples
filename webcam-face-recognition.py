@@ -3,7 +3,7 @@
 # @Author: wwwins
 # @Date:   2017-08-09 11:15:17
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-15 12:23:24
+# @Last Modified time: 2017-08-16 17:29:06
 
 import cv2
 import sys
@@ -16,8 +16,8 @@ from crop_face import *
 DEBUG = 0
 ENABLE_FPS = False
 
-FRAME_WIDTH = 640
-FRAME_HEIGHT = 360
+FRAME_WIDTH = 1920*0.5
+FRAME_HEIGHT = 1080*0.5
 
 # hunting sight
 SIGHT_W = 3
@@ -27,7 +27,7 @@ SIGHT_COLOR = (66,66,244)
 # 依不同的 cascade 做調整
 # lbpcascade_frontalface: 1.1
 # haarcascade_frontalface_alt2: 1.3
-SCALE_FACTOR = 1.3
+SCALE_FACTOR = 1.1
 MIN_NEIGHBORS = 3
 #MIN_SIZE = 30
 MIN_SIZE = 80
@@ -35,7 +35,7 @@ MIN_SIZE = 80
 FACE_SIZE = 200
 
 # default tolerance value
-TOLERANCE = 0.7
+TOLERANCE = 0.6
 
 if len(sys.argv) < 3:
     print("""
@@ -135,7 +135,7 @@ def faceTrain(frame):
     if cnt_error>error_max:
         print("need training:"+str(label_id+1))
         label_id = label_id + 1
-        arr_images.append(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
+        arr_images.append(cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)))
         arr_labels.append(label_id)
         recognizer.update(arr_images, np.array(arr_labels))
         cnt_error = 0
@@ -157,10 +157,11 @@ def facePrediction(frame):
             showText = recognizer.getLabelInfo(prediction_label)
             # cv2.putText(frame, str(showText), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
             # cv2.putText(frame, str(prediction_label), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
-            prediction_text(prediction_label, "號大頭照:{:.2f}".format(prediction_distance))
+            prediction_text(prediction_label, "號大頭照:{:.2f}".format(1.0-prediction_distance))
     else:
         cnt_error = cnt_error+1
         prediction_text(999999,"Unknown")
+    return prediction_label
 
 def facePredictionWithEyes(faces, eyes, roi_gray):
     gray_resize = np.array([])
@@ -221,8 +222,10 @@ def main():
     # cv2.moveWindow("Video", 690+640, 750+150)
     cv2.namedWindow("Label name")
     # cv2.moveWindow("Label name", 690+640, 750+150+FRAME_HEIGHT+24)
+    cv2.namedWindow('FaceId')
+    cv2.moveWindow("FaceId", 100, 800)
     cv2.namedWindow('Crop')
-    cv2.moveWindow("Crop", 700, 100)
+    cv2.moveWindow("Crop", 400, 800)
 
     if image:
         frame = cv2.imread(image)
@@ -248,7 +251,9 @@ def main():
             x,y,w,h = faces[0]
             cv2.imshow('Crop', frame[y+1:y+h, x+1:x+w])
             faceTrain(frame[y:y+h, x:x+w])
-            facePrediction(frame[y:y+h, x:x+w])
+            label_id = facePrediction(frame[y:y+h, x:x+w])
+            if label_id>0:
+                cv2.imshow('FaceId', arr_images[label_id-4])
         if ENABLE_FPS:
             print("fps:",t.fps())
         if cv2.waitKey(1) & 0xFF == ord('q'):
