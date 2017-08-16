@@ -3,11 +3,12 @@
 # @Author: wwwins
 # @Date:   2017-08-09 11:15:17
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-16 17:29:06
+# @Last Modified time: 2017-08-16 17:49:54
 
 import cv2
 import sys
 import time
+import argparse
 import numpy as np
 from ticket import ticket
 from ImageText import *
@@ -37,19 +38,15 @@ FACE_SIZE = 200
 # default tolerance value
 TOLERANCE = 0.6
 
-if len(sys.argv) < 3:
-    print("""
-    Usage:
-            webcam-face-recognition.py data/haarcascade_frontalface_default.xml lbph-training.yml [image.jpg]
-    """)
-    sys.exit(-1)
+parser = argparse.ArgumentParser()
+parser.add_argument('file', default='lbph-training.yml', help='model file')
+parser.add_argument('-f','--face_casc_file', nargs='?', const='data/haarcascade_frontalface_alt.xml', default='data/haarcascade_frontalface_alt.xml', help='face cascade file')
+args = parser.parse_args()
 
-cascPath = sys.argv[1]
+cascPath = args.face_casc_file
 faceCascade = cv2.CascadeClassifier(cascPath)
-eyeCascPath = "data/haarcascade_eye_tree_eyeglasses.xml"
-eyeCascade = cv2.CascadeClassifier(eyeCascPath)
 
-model_file = sys.argv[2]
+model_file = args.file
 recognizer = cv2.face.createLBPHFaceRecognizer()
 # recognizer = cv2.face.createFisherFaceRecognizer()
 # recognizer = cv2.face.createEigenFaceRecognizer()
