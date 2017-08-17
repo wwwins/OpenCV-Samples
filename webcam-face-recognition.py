@@ -3,7 +3,7 @@
 # @Author: wwwins
 # @Date:   2017-08-09 11:15:17
 # @Last Modified by:   wwwins
-# @Last Modified time: 2017-08-16 18:37:45
+# @Last Modified time: 2017-08-17 12:40:15
 
 import cv2
 import sys
@@ -39,12 +39,12 @@ FACE_SIZE = 200
 # default tolerance value
 TOLERANCE = 0.6
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description='face recognition from image or camera')
 parser.add_argument('file', default='lbph-training.yml', help='model file')
-parser.add_argument('-i','--image_file', help='image file')
-parser.add_argument('-f','--face_casc_file', nargs='?', const='data/haarcascade_frontalface_alt.xml', default='data/haarcascade_frontalface_alt.xml', help='face cascade file')
-parser.add_argument('-x', nargs='?', const='100', default='100', type=int, help='x position')
-parser.add_argument('-y', nargs='?', const='100', default='100', type=int, help='y position')
+parser.add_argument('-f', dest='face_casc_file', metavar='face_casc_file', default='data/haarcascade_frontalface_alt.xml', help='face cascade file')
+parser.add_argument('-i', dest='image_file', metavar='image', help='input image file')
+parser.add_argument('-x', metavar='x_pos', default='100', type=int, help='x position')
+parser.add_argument('-y', metavar='y_pos', default='100', type=int, help='y position')
 args = parser.parse_args()
 
 cascPath = args.face_casc_file
