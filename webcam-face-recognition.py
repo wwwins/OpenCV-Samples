@@ -16,10 +16,11 @@ from crop_face import *
 
 DEBUG = 0
 ENABLE_FPS = False
+ENABLE_SHOW_VIDEO= True
 ENABLE_SHOW_CROP = False
 
-FRAME_WIDTH = int(1920*0.5)
-FRAME_HEIGHT = int(1080*0.5)
+FRAME_WIDTH = int(1920*1.0)
+FRAME_HEIGHT = int(1080*1.0)
 
 # hunting sight
 SIGHT_W = 3
@@ -64,12 +65,12 @@ label_id = 3
 
 millis = lambda: int(round(time.time() * 1000))
 started_waiting_at = millis()
-cnt_error = 0
-error_max = 30
+started_waiting_recognition = millis()
+train_it = 0
 
 image = args.image_file
 if image is None:
-    video_capture = cv2.VideoCapture(1)
+    video_capture = cv2.VideoCapture(0)
     video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
     video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
 
@@ -131,18 +132,27 @@ def faceDetectAndCrop(frame):
             cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,255), 1)
         return frame,faces
 
+def faceRecognition(frame):
+    global started_waiting_recognition
+    label_id = 0
+    if (millis() - started_waiting_recognition) > 500:
+        label_id = facePrediction(frame)
+        if train_it:
+            faceTrain(frame)
+            label_id = facePrediction(frame)
+        started_waiting_recognition = millis()
+    return label_id
+
 def faceTrain(frame):
-    global cnt_error,arr_images,arr_labels,label_id
-    if cnt_error>error_max:
-        print("need training:"+str(label_id+1))
-        label_id = label_id + 1
-        arr_images.append(cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)))
-        arr_labels.append(label_id)
-        recognizer.update(arr_images, np.array(arr_labels))
-        cnt_error = 0
+    global train_it,arr_labels,label_id
+    print("need training:"+str(label_id+1))
+    label_id = label_id + 1
+    arr_images.append(cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)))
+    arr_labels.append(label_id)
+    recognizer.update(arr_images, np.array(arr_labels))
 
 def facePrediction(frame):
-    global cnt_error
+    global train_it
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     collector = cv2.face.MinDistancePredictCollector()
     prediction_label = recognizer.predict(gray)
@@ -153,6 +163,7 @@ def facePrediction(frame):
         print("label->dist: {0}->{1}".format(prediction_label, prediction_distance))
     if (prediction_distance < TOLERANCE):
         # draw_hunting_sight(frame, (x,y), (x+w,y+h))
+        train_it = 0
         showText = "Unknown"
         if(prediction_label>=0):
             showText = recognizer.getLabelInfo(prediction_label)
@@ -160,7 +171,7 @@ def facePrediction(frame):
             # cv2.putText(frame, str(prediction_label), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
             prediction_text(prediction_label, "號大頭照:{:.2f}".format(1.0-prediction_distance))
     else:
-        cnt_error = cnt_error+1
+        train_it = 1
         prediction_text(999999,"Unknown")
     return prediction_label
 
@@ -207,7 +218,6 @@ def facePredictionWithEyes(faces, eyes, roi_gray):
     return gray_resize
 
 def show_image_text(contents):
-    global cnt_error
     print('show image text:'+contents)
     frame_title = get_image_text(contents)
     cv2.imshow("Label name",frame_title)
@@ -219,6 +229,7 @@ def prediction_text(label, text):
         started_waiting_at = millis()
 
 def main():
+    global started_waiting_recognition,train_it
     cv2.namedWindow('Video')
     cv2.moveWindow("Video", pos[0], pos[1])
     cv2.namedWindow("Label name")
@@ -248,15 +259,18 @@ def main():
         _,frame = video_capture.read()
         frame = cv2.flip(frame,1)
         frame, faces = faceDetectAndCrop(frame)
-        cv2.imshow('Video', frame)
+        if ENABLE_SHOW_VIDEO:
+            cv2.imshow('Video', frame)
         if len(faces)>0:
             x,y,w,h = faces[0]
             if ENABLE_SHOW_CROP:
                 cv2.imshow('Crop', frame[y+1:y+h, x+1:x+w])
-            faceTrain(frame[y:y+h, x:x+w])
-            label_id = facePrediction(frame[y:y+h, x:x+w])
+            label_id = faceRecognition(frame[y:y+h, x:x+w])
             if label_id>0:
                 cv2.imshow('FaceId', arr_images[label_id-4])
+        else:
+            started_waiting_recognition = millis()
+            train_it = 0
         if ENABLE_FPS:
             print("fps:",t.fps())
         if cv2.waitKey(1) & 0xFF == ord('q'):
