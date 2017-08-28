@@ -16,7 +16,7 @@ from crop_face import *
 
 DEBUG = 0
 ENABLE_FPS = False
-ENABLE_SHOW_VIDEO= True
+ENABLE_SHOW_VIDEO= True 
 ENABLE_SHOW_CROP = False
 
 FRAME_WIDTH = int(1920*1.0)
@@ -61,7 +61,7 @@ pos = (args.x, args.y)
 
 arr_images = []
 arr_labels = []
-label_id = 3
+start_label_id = label_id = int(recognizer.getLabels()[-1])
 
 millis = lambda: int(round(time.time() * 1000))
 started_waiting_at = millis()
@@ -70,7 +70,7 @@ train_it = 0
 
 image = args.image_file
 if image is None:
-    video_capture = cv2.VideoCapture(0)
+    video_capture = cv2.VideoCapture(1)
     video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
     video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
     video_capture.set(cv2.CAP_PROP_AUTOFOCUS, 0)    # turn the autofocus off
@@ -130,7 +130,7 @@ def faceDetectAndCrop(frame):
         return frame,[]
     if len(faces)>0:
         for (x,y,w,h) in faces:
-            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,255), 1)
+            cv2.rectangle(frame, (x,y), (x+w,y+h), (0,0,255), 4)
         return frame,faces
 
 def faceRecognition(frame):
@@ -145,12 +145,16 @@ def faceRecognition(frame):
     return label_id
 
 def faceTrain(frame):
-    global train_it,arr_labels,label_id
+    global arr_images,arr_labels,train_it,arr_labels,label_id
     print("need training:"+str(label_id+1))
     label_id = label_id + 1
-    arr_images.append(cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)))
+    save_frame = cv2.equalizeHist(cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY))
+    arr_images.append(save_frame)
     arr_labels.append(label_id)
     recognizer.update(arr_images, np.array(arr_labels))
+    cv2.imwrite('mydatasets/{}.jpg'.format(label_id),save_frame)
+    arr_images = []
+    arr_labels = []
 
 def facePrediction(frame):
     global train_it
@@ -234,9 +238,9 @@ def main():
     cv2.namedWindow('Video')
     cv2.moveWindow("Video", pos[0], pos[1])
     cv2.namedWindow("Label name")
-    cv2.moveWindow("Label name", pos[0], pos[1])
-    cv2.namedWindow('FaceId')
-    cv2.moveWindow("FaceId", pos[0]+640, pos[1])
+    cv2.moveWindow("Label name", pos[0], pos[1]+270)
+    cv2.namedWindow('Face Recognition')
+    cv2.moveWindow("Face Recognition", pos[0]+480, pos[1])
     if ENABLE_SHOW_CROP:
         cv2.namedWindow('Crop')
         cv2.moveWindow("Crop", pos[0]+int(FRAME_WIDTH*0.5), pos[1]+FRAME_HEIGHT)
@@ -261,20 +265,24 @@ def main():
         frame = cv2.flip(frame,1)
         frame, faces = faceDetectAndCrop(frame)
         if ENABLE_SHOW_VIDEO:
-            cv2.imshow('Video', frame)
+            resize_frame = cv2.resize(frame, (480,270))
+            cv2.imshow('Video', resize_frame)
         if len(faces)>0:
             x,y,w,h = faces[0]
             if ENABLE_SHOW_CROP:
                 cv2.imshow('Crop', frame[y+1:y+h, x+1:x+w])
             label_id = faceRecognition(frame[y:y+h, x:x+w])
             if label_id>0:
-                cv2.imshow('FaceId', arr_images[label_id-4])
+                img = cv2.imread('mydatasets/{}.jpg'.format(label_id))
+                cv2.imshow('Face Recognition', img)
         else:
+            prediction_text('',"臉部偵測中")
             started_waiting_recognition = millis()
             train_it = 0
         if ENABLE_FPS:
             print("fps:",t.fps())
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(50) & 0xFF == ord('q'):
+            recognizer.save(model_file)
             break
 
     video_capture.release()
