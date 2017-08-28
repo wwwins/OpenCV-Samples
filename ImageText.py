@@ -38,7 +38,10 @@ def get_gradient_image_text(contents):
     return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
 def get_image_text(contents):
-    image = Image.new("RGB", (640,50),(250, 251, 252))
+    return get_image_text_with_size(contents,480,50)
+
+def get_image_text_with_size(contents,w,h):
+    image = Image.new("RGB", (w,h),(250, 251, 252))
     draw = ImageDraw.Draw(image)
     text = contents
     font = ImageFont.truetype("/Library/Fonts/PingFang.ttc", 32)
