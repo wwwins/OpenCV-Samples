@@ -73,6 +73,7 @@ if image is None:
     video_capture = cv2.VideoCapture(0)
     video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
     video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
+    video_capture.set(cv2.CAP_PROP_AUTOFOCUS, 0)    # turn the autofocus off
 
 time.sleep(1)
 t = ticket()
