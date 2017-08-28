@@ -33,7 +33,7 @@ SIGHT_COLOR = (66,66,244)
 SCALE_FACTOR = 1.1
 MIN_NEIGHBORS = 3
 #MIN_SIZE = 30
-MIN_SIZE = 80
+MIN_SIZE = 200
 
 FACE_SIZE = 200
 
@@ -62,6 +62,7 @@ pos = (args.x, args.y)
 arr_images = []
 arr_labels = []
 start_label_id = label_id = int(recognizer.getLabels()[-1])
+blank_image = np.zeros((320,320,3), np.uint8)
 
 millis = lambda: int(round(time.time() * 1000))
 started_waiting_at = millis()
@@ -174,7 +175,7 @@ def facePrediction(frame):
             showText = recognizer.getLabelInfo(prediction_label)
             # cv2.putText(frame, str(showText), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
             # cv2.putText(frame, str(prediction_label), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
-            prediction_text(prediction_label, "號大頭照:{:.2f}".format(1.0-prediction_distance))
+            prediction_text('',"辨識結果為右方照片{}({:.2f})".format(prediction_label,(1.0-prediction_distance)))
     else:
         train_it = 1
         prediction_text(999999,"Unknown")
@@ -277,6 +278,7 @@ def main():
                 cv2.imshow('Face Recognition', img)
         else:
             prediction_text('',"臉部偵測中")
+            cv2.imshow('Face Recognition', blank_image)
             started_waiting_recognition = millis()
             train_it = 0
         if ENABLE_FPS:
