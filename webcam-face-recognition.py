@@ -175,7 +175,7 @@ def facePrediction(frame):
             showText = recognizer.getLabelInfo(prediction_label)
             # cv2.putText(frame, str(showText), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
             # cv2.putText(frame, str(prediction_label), (x,y-15), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 1)
-            prediction_text('',"辨識結果為右方照片{}({:.2f})".format(prediction_label,(1.0-prediction_distance)))
+            prediction_text('',"辨識結果為右方圖像{}({:.2f})".format(prediction_label,(1.0-prediction_distance)))
     else:
         train_it = 1
         prediction_text(999999,"Unknown")
