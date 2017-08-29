@@ -21,6 +21,8 @@ ENABLE_SHOW_CROP = False
 
 FRAME_WIDTH = int(1920*1.0)
 FRAME_HEIGHT = int(1080*1.0)
+RESIZE_FRAME_WIDTH = int(1920*0.5)
+RESIZE_FRAME_HEIGHT = int(1080*0.5)
 
 # hunting sight
 SIGHT_W = 3
@@ -225,8 +227,8 @@ def facePredictionWithEyes(faces, eyes, roi_gray):
 
 def show_image_text(contents):
     print('show image text:'+contents)
-    frame_title = get_image_text(contents)
-    cv2.imshow("Label name",frame_title)
+    frame_title = get_image_text_with_size(contents,RESIZE_FRAME_WIDTH,50)
+    cv2.imshow("Description",frame_title)
 
 def prediction_text(label, text):
     global started_waiting_at
@@ -238,10 +240,10 @@ def main():
     global started_waiting_recognition,train_it
     cv2.namedWindow('Video')
     cv2.moveWindow("Video", pos[0], pos[1])
-    cv2.namedWindow("Label name")
-    cv2.moveWindow("Label name", pos[0], pos[1]+270)
+    cv2.namedWindow("Description")
+    cv2.moveWindow("Description", pos[0], pos[1]+RESIZE_FRAME_HEIGHT)
     cv2.namedWindow('Face Recognition')
-    cv2.moveWindow("Face Recognition", pos[0]+480, pos[1])
+    cv2.moveWindow("Face Recognition", pos[0]+RESIZE_FRAME_WIDTH, pos[1])
     if ENABLE_SHOW_CROP:
         cv2.namedWindow('Crop')
         cv2.moveWindow("Crop", pos[0]+int(FRAME_WIDTH*0.5), pos[1]+FRAME_HEIGHT)
@@ -266,7 +268,7 @@ def main():
         frame = cv2.flip(frame,1)
         frame, faces = faceDetectAndCrop(frame)
         if ENABLE_SHOW_VIDEO:
-            resize_frame = cv2.resize(frame, (480,270))
+            resize_frame = cv2.resize(frame, (RESIZE_FRAME_WIDTH,RESIZE_FRAME_HEIGHT))
             cv2.imshow('Video', resize_frame)
         if len(faces)>0:
             x,y,w,h = faces[0]
