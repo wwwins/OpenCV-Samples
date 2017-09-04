@@ -36,6 +36,6 @@ python feature_detection -s left.png right.png
 
 ## Face morph
 ```python
-python facemorph.py shape_predictor_landmarks.dat from.jpg to.jpg
+python facemorph.py src.jpg dst.jpg -o output.avi
 ```
 ![http://img.youtube.com/vi/rPn_D4v4Iko/0.jpg](https://youtu.be/rPn_D4v4Iko)
