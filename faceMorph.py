@@ -9,7 +9,7 @@ import dlib
 import numpy as np
 import cv2
 import sys
-
+import argparse
 
 # Check if a point is inside a rectangle
 def rectContains(rect, point) :
@@ -145,23 +145,26 @@ def get_landmarks(im):
         raise NoFaces
     return np.array([[p.x, p.y] for p in predictor(im, rects[0]).parts()])
 
-
-if len(sys.argv) < 4:
-    print("""
-    Usage:
-            python faceMorph.py xxx.dat img1.jpg img2.jpg
-    """)
-    sys.exit(-1)
-
 if __name__ == '__main__':
 
     steps = True
     animate = True
     saveFiles = False
+    saveVideo = False
 
-    shape_dat = sys.argv[1]
-    filename1 = sys.argv[2]
-    filename2 = sys.argv[3]
+    parser = argparse.ArgumentParser(description='face morphing')
+    parser.add_argument('src', help='src image file')
+    parser.add_argument('dst', help='dst image file')
+    parser.add_argument('-f', dest='shape_dat', metavar='shape_dat', default='data/shape_predictor_68_face_landmarks.dat', help='shape predictor face landmarks file')
+    parser.add_argument('-o', dest='output_file', metavar='output', help='output file')
+    args = parser.parse_args()
+
+    shape_dat = args.shape_dat
+    filename1 = args.src
+    filename2 = args.dst
+    output = args.output_file
+    if output:
+        saveVideo = True 
     alpha = 0.5
 
     # Read images
@@ -176,6 +179,11 @@ if __name__ == '__main__':
     predictor = dlib.shape_predictor(shape_dat)
     points1 = get_landmarks(img1)
     points2 = get_landmarks(img2)
+
+    # video
+    if saveVideo:
+        # out = cv2.VideoWriter('out.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (w,h))
+        out = cv2.VideoWriter(output, cv2.VideoWriter_fourcc('H','2','6','4'), 10, (w,h)) 
 
     # boundary points
     # x    x    x
@@ -200,6 +208,8 @@ if __name__ == '__main__':
                 fn = "img{}.png".format(cnt)
                 print ("processing:"+fn)
                 cv2.imwrite("images/"+fn,imgMorph)
+            if saveVideo:
+                out.write(imgMorph)
             if animate:
                 cv2.imshow("Morphed Face", np.uint8(imgMorph))
                 if cnt<1:
