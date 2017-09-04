@@ -33,3 +33,9 @@ python feature_detection -s left.png right.png
 ![feature-surf.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/feature-surf.png)
 
 ![feature-pi-2.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/feature-pi-2.png)
+
+## Face morph
+```python
+python facemorph.py shape_predictor_landmarks.dat from.jpg to.jpg
+```
+![http://img.youtube.com/vi/rPn_D4v4Iko/0.jpg](https://youtu.be/rPn_D4v4Iko)
