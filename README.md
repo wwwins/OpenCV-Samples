@@ -35,7 +35,16 @@ python feature_detection -s left.png right.png
 ![feature-pi-2.png](https://raw.githubusercontent.com/wwwins/OpenCV-Samples/master/screenshots/feature-pi-2.png)
 
 ## Face morph
+facemorph.py
 ```python
 python facemorph.py src.jpg dst.jpg -o output.avi
 ```
 [video](https://youtu.be/rPn_D4v4Iko)
+
+## Face recognition
+webcam-face-recognition.py
+Dynamic LBPH model file training and updating
+```python
+python webcam-face-recognition.py lbph-training.yml
+```
+[add later](https://)
