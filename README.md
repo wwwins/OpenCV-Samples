@@ -38,4 +38,4 @@ python feature_detection -s left.png right.png
 ```python
 python facemorph.py src.jpg dst.jpg -o output.avi
 ```
-![http://img.youtube.com/vi/rPn_D4v4Iko/0.jpg](https://youtu.be/rPn_D4v4Iko)
+![](https://youtu.be/rPn_D4v4Iko)
