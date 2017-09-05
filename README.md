@@ -42,8 +42,9 @@ python facemorph.py src.jpg dst.jpg -o output.avi
 [video](https://youtu.be/rPn_D4v4Iko)
 
 ## Face recognition
-webcam-face-recognition.py
 Dynamic LBPH model file training and updating
+
+webcam-face-recognition.py
 ```python
 python webcam-face-recognition.py lbph-training.yml
 ```
