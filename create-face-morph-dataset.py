@@ -58,31 +58,36 @@ def draw_rect(frame, d):
 # 剪下臉部
 def crop_rect(frame, d):
     ow, oh = frame.shape[:2]
+    crop_h = CROP_IMAGE_HEIGHT
+    crop_w = CROP_IMAGE_WIDTH
+    if oh < CROP_IMAGE_HEIGHT:
+        crop_h = oh
+    if ow < CROP_IMAGE_WIDTH:
+        crop_w = ow
     w = d.right()-d.left()
     h = d.bottom()-d.top()
-    half_w = (CROP_IMAGE_WIDTH - w)/2
-    half_h  = (CROP_IMAGE_HEIGHT - h)/10
+    half_w = (crop_w - w)/2
+    half_h = (crop_h - h)/10
     # cv2.rectangle(frame, (d.left(), d.top()), (d.right(), d.bottom()), (0, 255, 0), 2)
     # cv2.rectangle(frame, (d.left()-half_w, d.top()-half_h), (d.right()+half_w, d.bottom()+half_h*2), (10, 10, 250), 2)
     # 450x600
     crop_y1 = (d.top()-half_h*4)
     crop_y2 = (d.bottom()+half_h*6)
     if crop_y1 < 0:
-         crop_y1 = 0
-         crop_y2 = CROP_IMAGE_HEIGHT
+        crop_y1 = 0
+        crop_y2 = crop_h
     if crop_y2 > oh:
-        crop_y1 = oh - CROP_IMAGE_HEIGHT
+        crop_y1 = oh - crop_h
         crop_y2 = oh
 
     crop_x1 = (d.left()-half_w)
     crop_x2 = (d.right()+half_w)
     if crop_x1 < 0:
         crop_x1 = 0
-        crop_x2 = CROP_IMAGE_WIDTH
+        crop_x2 = crop_w
     if crop_x2 > ow:
-        crop_x1 = ow - CROP_IMAGE_WIDTH
+        crop_x1 = ow - crop_w
         crop_x2 = ow
-    
     return frame[crop_y1:crop_y2, crop_x1:crop_x2]
 
 # 依據FACE_SIZE調整圖片大小
@@ -140,6 +145,8 @@ def createDatasets():
             cv2.imshow('window', crop_image)
             cv2.imwrite("{0}/{1}".format(model_path, fn), crop_image)
             cv2.waitKey(1)
+        else:
+            print("File {} error:{}".format(fn, frame.shape))
 
         if DEBUG:
             print "{0}/{1}_{2}".format(model_path, sno-1, fn)
