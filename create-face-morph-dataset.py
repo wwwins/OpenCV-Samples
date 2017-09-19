@@ -126,30 +126,27 @@ def faceDetect(gray, fn):
     return gray
 
 def createDatasets():
-    sno = 0
     buf = ''
-    for f in glob('{0}/*.jpg'.format(image_path)):
+    for i,f in enumerate(glob('{0}/**/*.jpg'.format(image_path))):
     # for f in glob('{0}/*.png'.format(image_path)):
         frame = cv2.imread(f)
-        fn = f.split('/')[1]
+        fn = f.split('/')[-1]
         if buf != fn.split(' ')[0]:
             buf = fn.split(' ')[0]
-            sno = sno + 1
         frame = faceDetect(frame, fn)
         # 長寬大於100時才存檔
         if frame.shape[0] > 100:
             # print('Press any key to continus')
-            # cv2.imwrite("{0}/{1}_{2}".format(model_path, sno-1, fn), frame)
             crop_image = np.zeros((600,450,3), np.uint8)
             crop_image[:frame.shape[0], :frame.shape[1]] = frame
             cv2.imshow('window', crop_image)
-            cv2.imwrite("{0}/{1}".format(model_path, fn), crop_image)
+            cv2.imwrite("{0}/{1}_{2}".format(model_path, i, fn), crop_image)
             cv2.waitKey(1)
         else:
             print("File {} error:{}".format(fn, frame.shape))
 
         if DEBUG:
-            print "{0}/{1}_{2}".format(model_path, sno-1, fn)
+            print "{0}/{1}_{2}".format(model_path, i, fn)
 
 if __name__ == '__main__':
     createDatasets()
