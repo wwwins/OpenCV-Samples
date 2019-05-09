@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# ticket.py
+# Copyright 2019 isobar. All Rights Reserved.
+#
+# Measure opencv fps
 #
 # Usage:
 #       from ticket import ticket
@@ -23,7 +25,7 @@ class ticket(object):
         nowFrameTime = cv2.getTickCount()
         fps = self._freq / (nowFrameTime - self._prevFrameTime)
         self._prevFrameTime = nowFrameTime
-        fpsRounded      = round(fps, 1)
+        fpsRounded = round(fps, 1)
         return fpsRounded
 
     def display(self):
